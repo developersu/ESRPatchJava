@@ -1,4 +1,4 @@
-/*    
+/*
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -12,8 +12,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package esrpatchjava;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.*;
@@ -28,7 +30,7 @@ public class ESRPatch {
 	public static final int NOT_PATCHED = 4;
 
 	private static RandomAccessFile iso;
-	private static byte[] buffer = new byte[LBA_SIZE];
+	private static final byte[] buffer = new byte[LBA_SIZE];
 
 	public static int apply(String fileName) {
 		byte[] b;
@@ -37,7 +39,7 @@ public class ESRPatch {
 		try {
 			iso = new RandomAccessFile(fileName, "rw");
 			
-			// Checks if image is an UDF ISO
+			// Checks if image is a UDF ISO
 			if(!isUDFISO()) {
 				iso.close();
 				return NOT_UDF_ISO;
@@ -75,9 +77,7 @@ public class ESRPatch {
 			desc_crc_len = (((int)buffer[11] & 0xFF) << 8 & 0xFF00)+ ((int) buffer[10] & 0xFF);
 			b = new byte[desc_crc_len];
 
-			for(int i = 0; i < desc_crc_len; i++) {
-				b[i] = buffer[i + 16];
-			}
+			System.arraycopy(buffer, 16, b, 0, desc_crc_len);
 
 			desc_crc = CRC.CRC16CCITT(b);
 
@@ -110,9 +110,7 @@ public class ESRPatch {
 			desc_crc_len = (((int)buffer[11] & 0xFF) << 8 & 0xFF00)+ ((int) buffer[10] & 0xFF);
 			b = new byte[desc_crc_len];
 
-			for(int i = 0; i < desc_crc_len; i++) {
-				b[i] = buffer[i + 16];
-			}
+			System.arraycopy(buffer, 16, b, 0, desc_crc_len);
 
 			desc_crc = CRC.CRC16CCITT(b);
 
@@ -133,7 +131,7 @@ public class ESRPatch {
 			iso.seek(50 * LBA_SIZE);
 			iso.write(buffer);
 
-			// Writes DVDV data
+			// Writes esrpatchjava.DVDV data
 			DVDV.write(iso);
 
 			return PATCH_OK;
@@ -145,7 +143,8 @@ public class ESRPatch {
 		} finally {
 			try {
 				iso.close();
-			} catch(Exception e) {}
+			}
+			catch(Exception ignore) {}
 		}
 	}
 
@@ -175,33 +174,40 @@ public class ESRPatch {
 				if (buffer[1] == (byte) 0x4E && buffer[2] == (byte) 0x53 && buffer[3] == (byte) 0x52)
 					return true;
 			}
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			return false;
 		}
-
 		return false;
 	}
 	
 	public static int apply(List files, JFrame parent) {
-		String results = "";
-		
-		for (int j = 0; j < files.size(); j++) {
+		StringBuilder results = new StringBuilder();
 
-			File f = new File(files.get(j).toString());
-			
-			if(f.isFile() && f.exists()) {
-				results += f.getName();
-				
-				switch(apply(f.getPath())) {
-				case ESRPatch.ALREADY_PATCHED: results += " - ISO is already patched!\n"; break;
-				case ESRPatch.ERROR_PATCHING: results += " - Error trying to patch ISO!\n"; break; 
-				case ESRPatch.PATCH_OK: results += " - ISO patched successfully! :)\n"; break;
-				case ESRPatch.NOT_UDF_ISO: results += " - Error: ISO doesn't contain UDF descriptor!\n"; break;
+		for (Object file : files) {
+			File f = new File(file.toString());
+
+			if (f.isFile() && f.exists()) {
+				results.append(f.getName());
+
+				switch (apply(f.getPath())) {
+					case ESRPatch.ALREADY_PATCHED:
+						results.append(" - ISO is already patched!\n");
+						break;
+					case ESRPatch.ERROR_PATCHING:
+						results.append(" - Error trying to patch ISO!\n");
+						break;
+					case ESRPatch.PATCH_OK:
+						results.append(" - ISO patched successfully! :)\n");
+						break;
+					case ESRPatch.NOT_UDF_ISO:
+						results.append(" - Error: ISO doesn't contain UDF descriptor!\n");
+						break;
 				}
 			}
 		}
 		
-		JOptionPane.showMessageDialog(parent, results, "Results:", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(parent, results.toString(), "Results:", JOptionPane.INFORMATION_MESSAGE);
 
 		return 0;
 	}
@@ -211,7 +217,7 @@ public class ESRPatch {
 		try {
 			iso = new RandomAccessFile(fileName, "rw");
 			
-			// Checks if image is an UDF ISO
+			// Checks if image is a UDF ISO
 			if(!isUDFISO()) {
 				iso.close();
 				return NOT_UDF_ISO;
@@ -238,9 +244,7 @@ public class ESRPatch {
 			iso.write(buffer);
 			
 			// Clear backups
-			for(int i = 0; i < buffer.length; i++) {
-				buffer[i] = 0;
-			}
+			Arrays.fill(buffer, (byte) 0);
 			
 			iso.seek(14 * LBA_SIZE);
 			iso.write(buffer);
@@ -254,34 +258,44 @@ public class ESRPatch {
 			ex.printStackTrace();
 			return ERROR_PATCHING;
 
-		} finally {
+		}
+		finally {
 			try {
 				iso.close();
-			} catch(Exception e) {}
+			}
+			catch(Exception ignore) {}
 		}
 
 	}
 	
 	public static int unPatch(List files, JFrame parent) {
-		String results = "";
-		
-		for (int j = 0; j < files.size(); j++) {
+		StringBuilder results = new StringBuilder();
 
-			File f = new File(files.get(j).toString());
-			
-			if(f.isFile() && f.exists()) {
-				results += f.getName();
-				
-				switch(unPatch(f.getPath())) {
-				case ESRPatch.NOT_PATCHED: results += " - ISO is not patched!\n"; break;
-				case ESRPatch.ERROR_PATCHING: results += " - Error trying to unpatch ISO!\n"; break; 
-				case ESRPatch.PATCH_OK: results += " - ISO unpatched successfully! :)\n"; break;
-				case ESRPatch.NOT_UDF_ISO: results += " - Error: ISO doesn't contain UDF descriptor!\n"; break;
+		for (Object file : files) {
+
+			File f = new File(file.toString());
+
+			if (f.isFile() && f.exists()) {
+				results.append(f.getName());
+
+				switch (unPatch(f.getPath())) {
+					case ESRPatch.NOT_PATCHED:
+						results.append(" - ISO is not patched!\n");
+						break;
+					case ESRPatch.ERROR_PATCHING:
+						results.append(" - Error trying to unpatch ISO!\n");
+						break;
+					case ESRPatch.PATCH_OK:
+						results.append(" - ISO unpatched successfully! :)\n");
+						break;
+					case ESRPatch.NOT_UDF_ISO:
+						results.append(" - Error: ISO doesn't contain UDF descriptor!\n");
+						break;
 				}
 			}
 		}
 		
-		JOptionPane.showMessageDialog(parent, results, "Results:", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(parent, results.toString(), "Results:", JOptionPane.INFORMATION_MESSAGE);
 
 		return 0;
 	}

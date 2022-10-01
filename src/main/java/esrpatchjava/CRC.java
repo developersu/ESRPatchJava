@@ -1,4 +1,4 @@
-/*    
+/*
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -12,7 +12,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+package esrpatchjava;
 
 public class CRC {
 	static int[] CRC16_Lookup = {
@@ -51,12 +51,10 @@ public class CRC {
 	};
 
 	public static int CRC16CCITT(byte[] data) {
-
 		int crc16 = 0;
 
-		for(int i= 0, n= data.length; i < n; i++ )
-		{
-			int t = (crc16 >> 8) ^ ((int)data[i] & 0xFF);
+		for (byte datum : data) {
+			int t = (crc16 >> 8) ^ ((int) datum & 0xFF);
 			crc16 = ((crc16 << 8) & 0xffff) ^ CRC16_Lookup[t];
 		}
 
