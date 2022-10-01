@@ -70,7 +70,7 @@ public class Main extends JFrame implements ActionListener {
 		container.add(lblInfo2);
 		container.add(btnQuit);
 		((JPanel) container).setBorder(new EmptyBorder(5, 5, 5, 5));
-		setSize(450, 150);
+		setSize(450, 250);
 		setResizable(false);
 		setLocationRelativeTo(null);
 		setDropTarget(new DropTarget(getContentPane(), new MyDropTargetListener()));
