@@ -78,11 +78,11 @@ public class Main extends JFrame implements ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent event){
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setFileFilter(new ISOFileFilter());
-
 		if (event.getSource() == btnQuit)
 			System.exit(0);
+
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileFilter(new ISOFileFilter());
 
 		if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;

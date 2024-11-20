@@ -1,6 +1,6 @@
 ### ESRPatchJava
 
-![License](https://img.shields.io/badge/License-GPLv3-blue.svg) ![LatestVer](https://img.shields.io/github/release/developersu/ESRPatchJava.svg) [![Build Status](https://ci.redrise.ru/api/badges/desu/ESRPatchJava/status.svg)](https://ci.redrise.ru/desu/ESRPatchJava)
+![License](https://img.shields.io/badge/License-GPLv3-blue.svg) ![LatestVer](https://img.shields.io/github/release/developersu/ESRPatchJava.svg) [![status-badge](https://ci.redrise.ru/api/badges/3/status.svg)](https://ci.redrise.ru/repos/3)
 
 ![Application screenshot](screenshots/1.png)
 
